@@ -21,14 +21,28 @@ const App = () => {
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   // Effect to initialize Firebase and handle authentication
+  // Effect to initialize Firebase and handle authentication
   useEffect(() => {
-    try {
-      // Access global variables for Firebase config and app ID
-      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-      const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    // Define __app_id, __firebase_config, and __initial_auth_token if they are not globally defined
+    // This makes the code runnable outside the Canvas environment
+    const localAppId = typeof __app_id !== 'undefined' ? __app_id : 'strategos-bot-default-app'; // Use a unique default ID
+    const localFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+      // You can put a very basic placeholder Firebase config here if you want to silence warnings,
+      // but for this bot, Firebase isn't strictly needed for core functionality.
+      // If you ever want to add Firestore persistence, you'd put your actual Firebase config here.
+      apiKey: "YOUR_FIREBASE_WEB_API_KEY", // This is different from Gemini API key!
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: localAppId // Use the localAppId here
+    };
+    const localInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+
+    try {
       // Initialize Firebase app
-      const app = initializeApp(firebaseConfig);
+      const app = initializeApp(localFirebaseConfig);
       const firestoreDb = getFirestore(app);
       const firebaseAuth = getAuth(app);
 
@@ -44,8 +58,8 @@ const App = () => {
         } else {
           // User is signed out, try to sign in anonymously if no custom token
           try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              await signInWithCustomToken(firebaseAuth, __initial_auth_token);
+            if (localInitialAuthToken) {
+              await signInWithCustomToken(firebaseAuth, localInitialAuthToken);
             } else {
               await signInAnonymously(firebaseAuth);
             }
@@ -58,6 +72,15 @@ const App = () => {
           }
         }
       });
+
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Failed to initialize Firebase:", error);
+      setIsAuthReady(true); // Ensure app can still render even if Firebase fails
+      setUserId(crypto.randomUUID()); // Provide a fallback userId
+    }
+  }, []);
 
       // Cleanup subscription on unmount
       return () => unsubscribe();
