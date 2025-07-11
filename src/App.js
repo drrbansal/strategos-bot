@@ -74,7 +74,7 @@ const App = () => {
       });
 
       // Cleanup subscription on unmount
-      return () => unsubscribe();
+      return () => unsubscribe();;
     } catch (error) {
       console.error("Failed to initialize Firebase:", error);
       setIsAuthReady(true); // Ensure app can still render even if Firebase fails
