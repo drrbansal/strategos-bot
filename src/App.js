@@ -22,22 +22,21 @@
 
       // Effect to initialize Firebase and handle authentication
       useEffect(() => {
-        // Define __app_id, __firebase_config, and __initial_auth_token if they are not globally defined
-        // This makes the code runnable outside the Canvas environment
-        const localAppId = typeof __app_id !== 'undefined' ? __app_id : 'strategos-bot-default-app'; // Use a unique default ID
-        const localFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-          // You can put a very basic placeholder Firebase config here if you want to silence warnings,
-          // but for this bot, Firebase isn't strictly needed for core functionality.
-          // If you ever want to add Firestore persistence, you'd put your actual Firebase config here.
-          apiKey: "YOUR_FIREBASE_WEB_API_KEY", // This is different from Gemini API key!
-          authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_PROJECT_ID.appspot.com",
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: localAppId // Use the localAppId here
+        // These variables (__app_id, __firebase_config, __initial_auth_token) are provided
+        // automatically by the Google Canvas environment. When running locally or deployed
+        // to GitHub Pages, they are not defined. We provide fallback values here.
+        const localAppId = typeof window !== 'undefined' && typeof window.__app_id !== 'undefined' ? window.__app_id : 'strategos-bot-default-app';
+        const localFirebaseConfig = typeof window !== 'undefined' && typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : {
+          // Placeholder Firebase config. Firebase is not strictly required for the core Gemini bot functionality.
+          // If you ever add Firestore data persistence, you would replace these with your actual Firebase project config.
+          apiKey: "YOUR_FIREBASE_WEB_API_KEY_PLACEHOLDER",
+          authDomain: "your-project-id.firebaseapp.com",
+          projectId: "your-project-id",
+          storageBucket: "your-project-id.appspot.com",
+          messagingSenderId: "your-messaging-sender-id",
+          appId: localAppId
         };
-        const localInitialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
+        const localInitialAuthToken = typeof window !== 'undefined' && typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
 
         try {
           // Initialize Firebase app
@@ -73,7 +72,7 @@
           });
 
           // Cleanup subscription on unmount
-          return () => unsubscribe(); // This line now has the semicolon
+          return () => unsubscribe();
         } catch (error) {
           console.error("Failed to initialize Firebase:", error);
           setIsAuthReady(true); // Ensure app can still render even if Firebase fails
@@ -103,7 +102,8 @@
           }));
 
           const payload = { contents: chatHistory };
-          const apiKey = "AIzaSyDINxWMm0-osi4rZ0lJGMz6FzGDUO8swLk"; // 
+          // IMPORTANT: Replace "YOUR_GEMINI_API_KEY_HERE" with your actual Gemini API key
+          const apiKey = "AIzaSyDINxWMm0-osi4rZ0lJGMz6FzGDUO8swLk";
           const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
           const response = await fetch(apiUrl, {
